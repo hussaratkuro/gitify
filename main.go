@@ -190,14 +190,24 @@ func handleGitAction(action string) string {
 			}
 
 		case "Commit Changes":
+			inputField := huh.NewInput().Title("Commit Message").CharLimit(100)
+
 			form := huh.NewForm(
 				huh.NewGroup(
-					huh.NewInput().Title("Commit Message").CharLimit(100),
+					inputField,
 				),
 			).WithTheme(huh.ThemeCatppuccin())
 
 			if err := form.Run(); err == nil {
-				return executeGitCommand("commit", "-am", "Commit from Gitify")
+				var commitMessage string
+
+				inputField.Value(&commitMessage)
+
+				if commitMessage == "" {
+					commitMessage = "Commit from Gitify"
+				}
+
+				return executeGitCommand("commit", "-am", commitMessage)
 			}
 
 		case "Push to Remote":
