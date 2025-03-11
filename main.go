@@ -11,8 +11,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const repoPath = "."
-
 type model struct {
 	menuIndex int
 	output    string
@@ -86,7 +84,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	var b strings.Builder
-	b.WriteString("Gitify - Manage Git Repos\n\n")
+	b.WriteString("Gitify - Manage Git Repos\n")
 
 	for i, option := range menuOptions {
 		if i == m.menuIndex {
@@ -117,20 +115,20 @@ func handleGitAction(action string) string {
 							Placeholder("origin").
 							Value(&remoteName).
 							Validate(func(s string) error {
-									if s == "" {
-											return errors.New("remote name cannot be empty")
-									}
-									return nil
+								if s == "" {
+									return errors.New("remote name cannot be empty")
+								}
+								return nil
 							}),
 					huh.NewInput().
 							Title("Remote URL").
 							Placeholder("https://github.com/username/repo.git").
 							Value(&remoteURL).
 							Validate(func(s string) error {
-									if s == "" {
-											return errors.New("remote URL cannot be empty")
-									}
-									return nil
+								if s == "" {
+									return errors.New("remote URL cannot be empty")
+								}
+								return nil
 							}),
 				),
 			).WithTheme(huh.ThemeCatppuccin())
@@ -186,7 +184,8 @@ func handleGitAction(action string) string {
 					}
 				}
 
-				return executeGitCommand(append([]string{"add"}, selectedOptions...)...)
+				executeGitCommand(append([]string{"add"}, selectedOptions...)...)
+				return "Staged changes"
 			}
 
 		case "Commit Changes":
@@ -262,21 +261,21 @@ func handleGitAction(action string) string {
 				if branchName == "" {
 					branchName = currentBranch
 				}
-				
+
 				args := []string{"push"}
-				
+
 				if setUpstream {
 					args = append(args, "--set-upstream")
 				}
-				
+
 				args = append(args, selectedRemote, branchName)
-				
+
 				result := executeGitCommand(args...)
-				
+
 				if strings.Contains(result, "error") || strings.Contains(result, "fatal") {
 					return fmt.Sprintf("Push failed: %s", result)
 				}
-				
+
 				return fmt.Sprintf("Successfully pushed to %s/%s\n\n%s", 
 					selectedRemote, branchName, result)
 			}
