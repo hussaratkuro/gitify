@@ -201,7 +201,66 @@ func handleGitAction(action string) string {
 			}
 
 		case "Push to Remote":
-			return executeGitCommand("push")
+			currentBranch := strings.TrimSpace(executeGitCommand("rev-parse", "--abbrev-ref", "HEAD"))
+			if currentBranch == "" || strings.Contains(currentBranch, "fatal") {
+				return "Failed to get current branch."
+			}
+
+			remotesOutput := executeGitCommand("remote")
+			if remotesOutput == "" {
+				return "No remotes found. Add a remote first."
+			}
+
+			remotes := strings.Split(strings.TrimSpace(remotesOutput), "\n")
+
+			var selectedRemote string
+			var branchName string
+
+			remoteOptions := make([]huh.Option[string], 0, len(remotes))
+			for _, remote := range remotes {
+				remoteOptions = append(remoteOptions, huh.NewOption(remote, remote))
+			}
+
+			var setUpstream bool
+
+			form := huh.NewForm(
+				huh.NewGroup(
+					huh.NewSelect[string]().
+							Title("Remote").
+							Options(remoteOptions...).
+							Value(&selectedRemote),
+					huh.NewInput().
+							Title("Branch").
+							Placeholder(currentBranch).
+							Value(&branchName),
+					huh.NewConfirm().
+							Title("Set as upstream?").
+							Value(&setUpstream),
+				),
+			).WithTheme(huh.ThemeCatppuccin())
+
+			if err := form.Run(); err == nil {
+				if branchName == "" {
+					branchName = currentBranch
+				}
+				
+				args := []string{"push"}
+				
+				if setUpstream {
+					args = append(args, "--set-upstream")
+				}
+				
+				args = append(args, selectedRemote, branchName)
+				
+				result := executeGitCommand(args...)
+				
+				if strings.Contains(result, "error") || strings.Contains(result, "fatal") {
+					return fmt.Sprintf("Push failed: %s", result)
+				}
+				
+				return fmt.Sprintf("Successfully pushed to %s/%s\n\n%s", 
+					selectedRemote, branchName, result)
+			}
 
 		case "Pull from Remote":
 			return executeGitCommand("pull")
