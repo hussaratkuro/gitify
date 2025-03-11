@@ -217,6 +217,7 @@ func handleGitAction(action string) string {
 			}
 
 			executeGitCommand("commit", "-am", commitMessage)
+			return "Commit successful"
 
 		case "Push to Remote":
 			currentBranch := strings.TrimSpace(executeGitCommand("rev-parse", "--abbrev-ref", "HEAD"))
