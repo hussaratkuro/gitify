@@ -194,7 +194,7 @@ func handleGitAction(action string) string {
 
 			form := huh.NewForm(
 				huh.NewGroup(
-						inputField,
+					inputField,
 				),
 			).WithTheme(huh.ThemeCatppuccin())
 
@@ -212,7 +212,11 @@ func handleGitAction(action string) string {
 
 			fmt.Printf("Debug: Commit message entered by user: '%s'\n", commitMessage)
 
-			return executeGitCommand("commit", "-am", commitMessage)
+			if commitMessage == "" {
+				commitMessage = "Commit from Gitify"
+			}
+
+			executeGitCommand("commit", "-am", commitMessage)
 
 		case "Push to Remote":
 			currentBranch := strings.TrimSpace(executeGitCommand("rev-parse", "--abbrev-ref", "HEAD"))
