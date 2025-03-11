@@ -194,21 +194,25 @@ func handleGitAction(action string) string {
 
 			form := huh.NewForm(
 				huh.NewGroup(
-					inputField,
+						inputField,
 				),
 			).WithTheme(huh.ThemeCatppuccin())
 
-			if err := form.Run(); err == nil {
-				var commitMessage string
-
-				inputField.Value(&commitMessage)
-
-				if commitMessage == "" {
-					commitMessage = "Commit from Gitify"
-				}
-
-				return executeGitCommand("commit", "-am", commitMessage)
+			if err := form.Run(); err != nil {
+				fmt.Println("Error running form:", err)
+				return "Error: Failed to run form"
 			}
+
+			commitMessageAny := inputField.GetValue()
+			commitMessage, ok := commitMessageAny.(string)
+			if !ok {
+				fmt.Println("Error: Commit message is not a string")
+				return "Error: Invalid commit message"
+			}
+
+			fmt.Printf("Debug: Commit message entered by user: '%s'\n", commitMessage)
+
+			return executeGitCommand("commit", "-am", commitMessage)
 
 		case "Push to Remote":
 			currentBranch := strings.TrimSpace(executeGitCommand("rev-parse", "--abbrev-ref", "HEAD"))
